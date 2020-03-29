@@ -26,7 +26,7 @@ const geography = {
   rural: {
     size: 11,
     density: 122,
-    connections: ['soCal', 0.05, 'rural', 0.1],
+    lockdown: new Date('2020-03-19'),
   },
 };
 
