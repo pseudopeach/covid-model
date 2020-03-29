@@ -9,6 +9,7 @@ START_DATE = new Date('2020-01-25');
 
 // SOCAL
 // SCENARIO A init 1.2e-8 infectionFatalityRate: 0.01 lockdown 0.5
+// SCENARIO C init 1.5e-7 infectionFatalityRate: 0.001 lockdown 0.5
 
 const geography = {
   bayArea: {
@@ -16,7 +17,7 @@ const geography = {
     density: 868,
     lockdown: new Date('2020-03-16'),
     connections: ['bayArea', 0.1, 'soCal', 0.05],
-    initialInfected: 0.88e-6, // in millions, on 1/25
+    initialInfected: 0.88e-7, // in millions, on 1/25
   },
   soCal: {
     size: 22.1,
@@ -30,6 +31,7 @@ const geography = {
     density: 122,
     lockdown: new Date('2020-03-19'),
     connections: ['soCal', 0.05, 'rural', 0.1],
+    initialInfected: 5e-3, // in millions, on 1/25
   },
 };
 
@@ -42,7 +44,7 @@ const COVID = {
   isolationBeginsDays: 7,
   fatalityAtDays: 8,
   recoveryTimeDays: 21,
-  lockdownFactor: 0.4, // prevents this fraction of interactions
+  lockdownFactor: 0.75, // prevents this fraction of interactions
 };
 
 function doStep(population, time) {
@@ -94,7 +96,7 @@ function initializePopulation(geography) {
   return obj;
 }
 
-let pop = initializePopulation(geography.soCal);
+let pop = initializePopulation(geography.bayArea);
 let time = new Date(START_DATE);
 for(let i=0; i<SIM_DAYS; i++){
   time = new Date(time.getTime() + 24*3600*1000);
