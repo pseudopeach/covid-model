@@ -15,20 +15,17 @@ const geography = {
     size: 7.75,
     density: 868,
     lockdown: new Date('2020-03-16'),
-    connections: ['bayArea', 0.1, 'soCal', 0.05],
     initialInfected: 0.88e-6, // in millions, on 1/25
   },
   soCal: {
     size: 22.1,
     density: 392,
     lockdown: new Date('2020-03-19'),
-    connections: ['bayArea', 0.05, 'rural', 0.05],
     initialInfected: 1.2e-8, // in millions, on 1/25
   },
   rural: {
     size: 11,
     density: 122,
-    lockdown: new Date('2020-03-19'),
     connections: ['soCal', 0.05, 'rural', 0.1],
   },
 };
