@@ -32,9 +32,9 @@ const geography = {
   },
   nyc: {
     size: 23.7,
-    density: 900, //5318,
-    lockdown: new Date('2020-03-18'), // correct??
-    initialInfected: 9e-11, // in millions, on 1/25
+    density: 500, //5318,
+    lockdown: new Date('2020-03-17'), // correct??
+    initialInfected: 24e-7, // in millions, on 1/25
   },
 };
 
@@ -98,7 +98,7 @@ function initializePopulation(geography, dt=1) {
   return obj;
 }
 
-const dt = 1;
+const dt = 0.25;
 let pop = initializePopulation(geography.bayArea, dt);
 let time = new Date(START_DATE);
 for(let i=0; i<SIM_DAYS/dt; i++){
