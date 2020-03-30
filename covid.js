@@ -3,12 +3,13 @@ START_DATE = new Date('2020-01-25');
 
 
 // BAY AREA
-// SCENARIO A init 0.88e-7 infectionFatalityRate: 0.01
+// SCENARIO A init 10e-8 infectionFatalityRate: 0.01
 // SCENARIO B init 1.7e-7 infectionFatalityRate: 0.005 lockdown 0.5
 // SCENARIO C init 0.88e-6 infectionFatalityRate: 0.001 lockdown 0.5
 
 // SOCAL
-// SCENARIO A init 1.2e-8 infectionFatalityRate: 0.01 lockdown 0.5
+// SCENARIO A init 3e-8 infectionFatalityRate: 0.01 lockdown 0.5
+// SCENARIO C init 1.5e-7 infectionFatalityRate: 0.001 lockdown 0.5
 
 const geography = {
   bayArea: {
@@ -27,6 +28,13 @@ const geography = {
     size: 11,
     density: 122,
     lockdown: new Date('2020-03-19'),
+    initialInfected: 5e-3, // in millions, on 1/25
+  },
+  nyc: {
+    size: 23.7,
+    density: 900, //5318,
+    lockdown: new Date('2020-03-18'), // correct??
+    initialInfected: 9e-11, // in millions, on 1/25
   },
 };
 
@@ -42,11 +50,11 @@ const COVID = {
   lockdownFactor: 0.85, // prevents this fraction of interactions
 };
 
-function doStep(population, time) {
+function doStep(population, time, dt=1) {
   const susceptible = COVID.communityAttackRate*population.size - population.totalEverInfected;
   const rate = COVID.baseRate*population.density*
       (time > population.lockdown ? 1.0 - COVID.lockdownFactor : 1.0);
-  const newInfected = rate*population.contagious*susceptible;
+  const newInfected = dt*rate*population.contagious*susceptible;
 
   population.infected[time.getTime()] = newInfected;
   population.totalEverInfected += newInfected;
@@ -73,7 +81,7 @@ function subtractDays(baseTime, days) {
 }
 
 
-function initializePopulation(geography) {
+function initializePopulation(geography, dt=1) {
   let obj = Object.assign({}, geography, {
     totalEverInfected: geography.initialInfected,
     contagious: 0,
@@ -82,20 +90,20 @@ function initializePopulation(geography) {
     infected: [],
   });
 
-  for(let i=0; i<SIM_DAYS+COVID.recoveryTimeDays; i++){
-    obj.infected[START_DATE.getTime() + (i- COVID.recoveryTimeDays)*24*3600*1000] = 0;
+  for(let i=0; i<SIM_DAYS+Math.round(1/dt)*COVID.recoveryTimeDays; i++){
+    obj.infected[START_DATE.getTime() + (dt*i - COVID.recoveryTimeDays)*24*3600*1000] = 0;
   }
 
   obj.infected[START_DATE.getTime()] = geography.initialInfected;
-
   return obj;
 }
 
-let pop = initializePopulation(geography.soCal);
+const dt = 1;
+let pop = initializePopulation(geography.bayArea, dt);
 let time = new Date(START_DATE);
-for(let i=0; i<SIM_DAYS; i++){
-  time = new Date(time.getTime() + 24*3600*1000);
-  doStep(pop, time);
+for(let i=0; i<SIM_DAYS/dt; i++){
+  time = new Date(time.getTime() + dt*24*3600*1000);
+  doStep(pop, time, dt);
   console.log(i, time,
       Math.round(1e6*pop.totalEverInfected),
       Math.round(1e6*pop.totalFatalities),
