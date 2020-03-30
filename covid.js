@@ -15,13 +15,13 @@ const geography = {
     size: 7.75,
     density: 868,
     lockdown: new Date('2020-03-16'),
-    initialInfected: 0.88e-6, // in millions, on 1/25
+    initialInfected: 1.2e-5, // in millions, on 1/25
   },
   soCal: {
     size: 22.1,
     density: 392,
     lockdown: new Date('2020-03-19'),
-    initialInfected: 1.2e-8, // in millions, on 1/25
+    initialInfected: 3.2e-6, // in millions, on 1/25
   },
   rural: {
     size: 11,
@@ -31,15 +31,15 @@ const geography = {
 };
 
 const COVID = {
-  baseRate: 14e-5,
+  baseRate: 9e-5,
   communityAttackRate: 0.4,
-  severeSymptomaticRate: 0.2,
-  infectionFatalityRate: 0.01,
+  severeSymptomaticRate: 0.25,
+  infectionFatalityRate: 0.005,
   incubationTimeDays: 2,
   isolationBeginsDays: 7,
-  fatalityAtDays: 8,
+  fatalityAtDays: 17,
   recoveryTimeDays: 21,
-  lockdownFactor: 0.4, // prevents this fraction of interactions
+  lockdownFactor: 0.85, // prevents this fraction of interactions
 };
 
 function doStep(population, time) {
