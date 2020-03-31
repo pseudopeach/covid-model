@@ -1,15 +1,5 @@
-SIM_DAYS = 200;
+SIM_DAYS = 400;
 START_DATE = new Date('2020-01-25');
-
-
-// BAY AREA
-// SCENARIO A init 10e-8 infectionFatalityRate: 0.01
-// SCENARIO B init 1.7e-7 infectionFatalityRate: 0.005 lockdown 0.5
-// SCENARIO C init 0.88e-6 infectionFatalityRate: 0.001 lockdown 0.5
-
-// SOCAL
-// SCENARIO A init 3e-8 infectionFatalityRate: 0.01 lockdown 0.5
-// SCENARIO C init 1.5e-7 infectionFatalityRate: 0.001 lockdown 0.5
 
 const geography = {
   bayArea: {
@@ -17,24 +7,20 @@ const geography = {
     density: 868,
     lockdown: new Date('2020-03-16'),
     initialInfected: 1.2e-5, // in millions, on 1/25
+    unlock: new Date('2022-06-27'),
   },
-  soCal: {
-    size: 22.1,
-    density: 392,
+  la: {
+    size: 13.3,
+    density: 900,
     lockdown: new Date('2020-03-19'),
-    initialInfected: 3.2e-6, // in millions, on 1/25
-  },
-  rural: {
-    size: 11,
-    density: 122,
-    lockdown: new Date('2020-03-19'),
-    initialInfected: 5e-3, // in millions, on 1/25
+    initialInfected: 4e-7, // in millions, on 1/25
   },
   nyc: {
     size: 23.7,
-    density: 500, //5318,
-    lockdown: new Date('2020-03-17'), // correct??
-    initialInfected: 24e-7, // in millions, on 1/25
+    density: 400, //5318,
+    lockdown: new Date('2020-03-22'),
+    initialInfected: 20e-6, // in millions, on 1/25
+    unlock: new Date('2020-05-07'),
   },
 };
 
@@ -47,13 +33,13 @@ const COVID = {
   isolationBeginsDays: 7,
   fatalityAtDays: 17,
   recoveryTimeDays: 21,
-  lockdownFactor: 0.85, // prevents this fraction of interactions
+  lockdownFactor: 0.6, // prevents this fraction of interactions
 };
 
 function doStep(population, time, dt=1) {
   const susceptible = COVID.communityAttackRate*population.size - population.totalEverInfected;
   const rate = COVID.baseRate*population.density*
-      (time > population.lockdown ? 1.0 - COVID.lockdownFactor : 1.0);
+      (time > population.lockdown && time < population.unlock ? 1.0 - COVID.lockdownFactor : 1.0);
   const newInfected = dt*rate*population.contagious*susceptible;
 
   population.infected[time.getTime()] = newInfected;
@@ -73,7 +59,10 @@ function doStep(population, time, dt=1) {
   population.recovered += newRecovered;
   population.contagious = Math.max(0, population.contagious - newRecovered);
 
-  // console.log('inf', 1e6*newInfected, 'rec', 1e6*newRecovered, 'iso', 1e6*newIsolated);
+  // reinfection
+  if(time > population.unlock) population.infected[time.getTime()] += 1e-6;
+
+  return newDead;
 }
 
 function subtractDays(baseTime, days) {
@@ -98,24 +87,31 @@ function initializePopulation(geography, dt=1) {
   return obj;
 }
 
-const dt = 0.25;
+const dt = 1;
 let pop = initializePopulation(geography.bayArea, dt);
 let time = new Date(START_DATE);
-for(let i=0; i<SIM_DAYS/dt; i++){
-  time = new Date(time.getTime() + dt*24*3600*1000);
-  doStep(pop, time, dt);
-  console.log(i, time,
-      Math.round(1e6*pop.totalEverInfected),
-      Math.round(1e6*pop.totalFatalities),
-      Math.round(1e6*pop.contagious),
-      Math.round(1e6*pop.recovered),
-  );
+
+console.log('day,deaths,deathsper10M');
+for(let i=0; i<SIM_DAYS; i++){
+  let dailyDeathToll = 0;
+  for(let j=0; j<1/dt; j++) {
+    time = new Date(time.getTime() + dt*24*3600*1000);
+    dailyDeathToll += doStep(pop, time, dt);
+    // console.log(i, time,
+    //     Math.round(1e6*pop.totalEverInfected),
+    //     Math.round(1e6*pop.totalFatalities),
+    //     Math.round(1e6*pop.contagious),
+    //     Math.round(1e6*pop.recovered),
+    // );
+  }
+  console.log([time.toLocaleDateString(), Math.round(dailyDeathToll*1e6), dailyDeathToll/pop.size*1e7].join(','));
+
 }
 
 /*
 
 observed death data
-date                      BA       SOCAL   RURAL
+date                      BA       LA_METRO   RURAL
 2020-03-04                0        0        1
 2020-03-05                0        0        0
 2020-03-06                0        0        0
@@ -134,13 +130,13 @@ date                      BA       SOCAL   RURAL
 2020-03-19                0        1        1
 2020-03-20                4        1        0
 2020-03-21                0        3        1
-2020-03-22                2        4        1
+2020-03-22                2        3        1
 2020-03-23                4        2        1
-2020-03-24                4        6        0
+2020-03-24                4        5        0
 2020-03-25                6        6        3
-2020-03-26                5        10        1
-2020-03-27                5        12        2
-2020-03-28                1        0        0
+2020-03-26                5        9        1
+2020-03-27                5        9        2
+
 
 */
 

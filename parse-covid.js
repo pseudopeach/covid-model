@@ -9,6 +9,8 @@ const BAY_AREA = ['san francisco', 'san mateo', 'santa clara', 'alameda',
 const SO_CAL = ['los angeles', 'orange', 'riverside', 'san bernardino', 'santa barbara',
   'san diego', 'san luis obispo', 'imperial', 'kern', 'ventura'];
 
+const LA_METRO = ['los angeles', 'orange', 'riverside', 'san bernardino', 'ventura'];
+
 outputData = Array(100);
 const startDate = new Date('2020-01-25');
 
@@ -44,7 +46,7 @@ for(let day of outputData) {
   for(let c in day) {
     if (c === 'date') continue;
     if(BAY_AREA.indexOf(c) > -1) row[1] += day[c];
-    else if(SO_CAL.indexOf(c) > -1) row[2] += day[c];
+    else if(LA_METRO.indexOf(c) > -1) row[2] += day[c];
     else row[3] += day[c];
     // if(day[c] > 0 && BAY_AREA.indexOf(c) === -1 && SO_CAL.indexOf(c) === -1) {
     //   console.log(c, day.date, day[c]);
