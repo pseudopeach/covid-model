@@ -1,4 +1,4 @@
-SIM_DAYS = 400;
+SIM_DAYS = 200;
 START_DATE = new Date('2020-01-25');
 
 const geography = {
@@ -33,7 +33,7 @@ const COVID = {
   isolationBeginsDays: 7,
   fatalityAtDays: 17,
   recoveryTimeDays: 21,
-  lockdownFactor: 0.6, // prevents this fraction of interactions
+  lockdownFactor: 0.8, // prevents this fraction of interactions
 };
 
 function doStep(population, time, dt=1) {
@@ -87,7 +87,7 @@ function initializePopulation(geography, dt=1) {
   return obj;
 }
 
-const dt = 1;
+const dt = 0.25;
 let pop = initializePopulation(geography.bayArea, dt);
 let time = new Date(START_DATE);
 
@@ -105,8 +105,10 @@ for(let i=0; i<SIM_DAYS; i++){
     // );
   }
   console.log([time.toLocaleDateString(), Math.round(dailyDeathToll*1e6), dailyDeathToll/pop.size*1e7].join(','));
-
 }
+console.log('Total fatalities:', Math.round(1e6*pop.totalFatalities));
+console.log('Total fatalities per 10M:',pop.totalFatalities/pop.size*1e7);
+console.log('Total ever infected:', Math.round(1e6*pop.totalEverInfected));
 
 /*
 
@@ -119,7 +121,7 @@ date          BA   LA_METRO   OTHER
 2020-03-08    0    0    0
 2020-03-09    1    0    0
 2020-03-10    0    0    0
-2020-03-11    0    1    0 
+2020-03-11    0    1    0
 2020-03-12    0    0    0
 2020-03-13    1    0    0
 2020-03-14    0    0    0

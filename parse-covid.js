@@ -46,11 +46,11 @@ for(let day of outputData) {
   for(let c in day) {
     if (c === 'date') continue;
     if(BAY_AREA.indexOf(c) > -1) row[1] += day[c];
-    else if(LA_METRO.indexOf(c) > -1) row[2] += day[c];
+    else if(SO_CAL.indexOf(c) > -1) row[2] += day[c];
     else row[3] += day[c];
-    // if(day[c] > 0 && BAY_AREA.indexOf(c) === -1 && SO_CAL.indexOf(c) === -1) {
-    //   console.log(c, day.date, day[c]);
-    // }
+    if(day[c] > 0 && BAY_AREA.indexOf(c) === -1 && SO_CAL.indexOf(c) === -1) {
+      console.log(c, day.date, day[c]);
+    }
   }
   console.log(row)
 }
