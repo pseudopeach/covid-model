@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>COVID19 Modeling</title>
+  <meta name="description" content="Possible COVID-19 Scenario">
+  <meta name="author" content="Justin">
+
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.css">
+  <link rel="stylesheet" href="main.css" />
+
+</head>
+
+<body>
+  <form id="control-panel">
+    <label for="geography-options">Select Geography</label>
+    <select id="geography-options"></select>
+
+    <fieldset id="first-lockdown">
+      <legend>First Lockdown</legend>
+      <input type="checkbox" name="active"/>
+      <input type="date" name="start-date"/>
+      <input type="date" name="end-date"/>
+    </fieldset>
+    <fieldset id="second-lockdown">
+      <legend>Second Lockdown</legend>
+      <input type="checkbox" name="active"/>
+      <input type="date" name="start-date"/>
+      <input type="date" name="end-date"/>
+    </fieldset>
+    <fieldset id="partial-lockdown">
+      <legend>Partial Lockdown</legend>
+      <input type="checkbox" name="active"/>
+      <input type="date" name="start-date"/>
+      <input type="date" name="end-date"/>
+    </fieldset>
+  </form>
+
+  <section id="stats-display">
+    <figure id="total-fatalities-ind">
+      <figcaption>Total Fatalities</figcaption>
+      <div class="value-display">14,324</div>
+    </figure>
+    <figure id="total-fatalities-percap-ind">
+      <figcaption>Fatalities Per 100k</figcaption>
+      <div class="value-display">14,324</div>
+    </figure>
+    <figure id="total-infections-ind">
+      <figcaption>Total Infections</figcaption>
+      <div class="value-display">14,324</div>
+    </figure>
+  </section>
+
+  <figure id="chart"></figure>
+
+<script src="covid.js">
+</script>
+<script language="JavaScript">
+  function refresh() {
+    const lockdowns = getLockdowns();
+    const { fatalitiesByDay, totalFatalities, totalFatalitiesPerCapita, totalEverInfected }
+        = runSimulation(document.getElementById('geography-options').value, lockdowns, 0.25);
+    updateStats(totalFatalities, totalFatalitiesPerCapita, totalEverInfected);
+    drawChart(fatalitiesByDay, lockdowns);
+  }
+
+  function updateStats(totalFatalities, totalFatalitiesPerCapita, totalEverInfected) {
+    document.getElementById('total-fatalities-ind').querySelector('.value-display').innerHTML
+        = totalFatalities.toLocaleString();
+    document.getElementById('total-fatalities-percap-ind').querySelector('.value-display').innerHTML
+        = (totalFatalitiesPerCapita > 5 ? Math.round(totalFatalitiesPerCapita): totalFatalitiesPerCapita)
+          .toLocaleString();
+    document.getElementById('total-infections-ind').querySelector('.value-display').innerHTML
+        = totalEverInfected.toLocaleString();
+  }
+
+  function drawChart(fataltiesByDay, lockdowns) {
+    const chart = document.getElementById('chart');
+    chart.innerHTML = '';
+
+    const startDate = fataltiesByDay[0].date;
+    const endDate = fataltiesByDay[fataltiesByDay.length - 1].date;
+    const pixelsPerDay = 2.0;
+    const chartHeight = chart.clientHeight;
+    const chartWidth = chart.clientWidth;
+    const maxValue = 1.2*Math.max(...fataltiesByDay.map(f => f.value));
+
+    for(let day of fataltiesByDay) {
+      const height = day.value/maxValue*chartHeight;
+      const col = document.createElement('div');
+      col.className = 'chart-col';
+      col.style.height = height+'px';
+
+      chart.appendChild(col);
+    }
+
+    for(let lock of lockdowns) {console.log('lockdown', lock.start, lock.end)
+      const leftPos = Math.round((lock.start.getTime() - startDate.getTime())*pixelsPerDay/24/3600/1000);
+      const width = Math.round((lock.end.getTime() - lock.start.getTime())*pixelsPerDay/24/3600/1000);
+
+      const b = document.createElement('div');
+      b.className = 'chart-overlay' + (lock.value < 1.0 ? ' partial' : '');
+      b.style.top = '0px';
+      b.style.bottom = '0px';
+      b.style.left = leftPos+'px';
+      b.style.width = width+'px';
+
+      chart.appendChild(b);
+    }
+  }
+
+  function loadScenarios() {
+    const initialSelection = 'bayArea';
+    for(let key in geographies) {
+      const el = document.createElement('option');
+      el.textContent = geographies[key].name;
+      el.value = key;
+      if(key === initialSelection) el.selected = 'selected';
+      document.getElementById('geography-options').appendChild(el);
+    }
+
+
+    loadSelectedScenario();
+  }
+
+  function loadSelectedScenario() {
+    const geo = geographies[document.getElementById('geography-options').value];
+
+    for(let key in geo.lockdowns) {
+      const fs = document.getElementById(key);
+      if(!geo.lockdowns[key]) {
+        fs.querySelector('input[name="active"]').checked = false;
+        continue;
+      }
+      fs.querySelector('input[name="active"]').checked = true;
+      fs.querySelector('input[name="start-date"]').value = formatDate(geo.lockdowns[key].start);
+      fs.querySelector('input[name="end-date"]').value = formatDate(geo.lockdowns[key].end);
+    }
+  }
+
+  function getLockdowns() {
+    const fieldsets = [
+      { id :'first-lockdown', value: 1.0 },
+      { id :'second-lockdown', value: 1.0 },
+      { id :'partial-lockdown', value: 0.5 }
+    ];
+
+    let lockdowns = [];
+
+    for (let lopt of fieldsets) {
+      const fs = document.getElementById(lopt.id);
+      const startField = fs.querySelector('input[name="start-date"]');
+      const endField = fs.querySelector('input[name="end-date"]');
+      const startDate = new Date(startField.value);
+      const endDate = new Date(endField.value);
+
+      if(fs.querySelector('input[name="active"]').checked && !isNaN(startDate.getTime())) {
+        if(isNaN(endDate.getTime()) || endDate <= startDate) {
+          endField.value = formatDate(new Date(startDate.getTime() + 7*24*3600*1000));
+        }
+
+        lockdowns.push({
+          start: new Date(fs.querySelector('input[name="start-date"]').value),
+          end: new Date(fs.querySelector('input[name="end-date"]').value),
+          value: lopt.value,
+        });
+      }
+    }
+
+    return lockdowns;
+  }
+
+  loadScenarios();
+  refresh();
+  document.getElementById('geography-options').onchange = loadSelectedScenario;
+  document.getElementById('control-panel').onchange = refresh;
+
+
+
+  function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2)
+        month = '0' + month;
+    if (day.length < 2)
+        day = '0' + day;
+
+    return [year, month, day].join('-');
+}
+</script>
+
+</body>
+</html>
+
+

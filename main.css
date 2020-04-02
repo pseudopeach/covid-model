@@ -1,0 +1,51 @@
+#stats-display {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+#stats-display figure {
+  padding: 20px 20px 5px;
+  margin: 10px;
+}
+#stats-display .value-display {
+  color: #505050;
+  font-size: 40px;
+}
+
+#chart {
+  align-items: flex-end;
+  border: gray 2px solid;
+  display: flex;
+  height: 400px;
+  margin: auto;
+  position: relative;
+  width: 1000px;
+}
+.chart-col {
+  background: #529F15;
+  height: 250px;
+  margin: 0 1px 0 0;
+  width: 1px;
+}
+
+.chart-overlay {
+  background: rgba(239, 71, 111, 0.2);
+  position: absolute;
+}
+.chart-overlay.partial {
+  background: rgba(243, 182, 31, 0.2);
+}
+
+body {
+  margin: 20px auto;
+  width: 1200px;
+}
+
+input[type="date"] {
+  width: 150px;
+}
+
+select {
+  width: 325px;
+}
+/*EF476F, F3B61F 346, 70, 94 ; 43, 87, 95*/
