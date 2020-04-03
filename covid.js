@@ -1,4 +1,4 @@
-SIM_DAYS = 200;
+SIM_DAYS = 500;
 START_DATE = new Date('2020-01-25');
 
 const geographies = {
@@ -7,7 +7,7 @@ const geographies = {
     size: 7.75,
     density: 868,
     lockdown: new Date('2020-03-16'),
-    initialInfected: 1.2e-5, // in millions, on 1/25
+    initialInfected: 7e-6, // in millions, on 1/25
     lockdowns: {
       'first-lockdown': {
         start: new Date('2020-03-16'),
@@ -16,7 +16,7 @@ const geographies = {
       'second-lockdown': null,
       'partial-lockdown': {
         start: new Date('2020-04-05'),
-        end: new Date('2020-07-04'),
+        end: new Date('2020-09-15'),
       },
     },
   },
@@ -64,7 +64,7 @@ const COVID = {
   isolationBeginsDays: 7,
   fatalityAtDays: 17,
   recoveryTimeDays: 21,
-  lockdownFactor: 0.85, // prevents this fraction of interactions
+  lockdownFactor: 0.80, // prevents this fraction of interactions
 };
 
 function runSimulation(geoName, lockdowns, timeRes, verbose=false) {
@@ -109,7 +109,8 @@ function doStep(population, time, lockdowns, dt=1) {
   population.infected[time.getTime()] = newInfected;
   population.totalEverInfected += newInfected;
 
-  population.contagious += population.infected[subtractDays(time, COVID.incubationTimeDays)];
+  const newContagious = population.infected[subtractDays(time, COVID.incubationTimeDays)];
+  population.contagious += newContagious;
 
   const newIsolated = population.infected[subtractDays(time, COVID.isolationBeginsDays)]*COVID.severeSymptomaticRate;
   population.contagious -= newIsolated;
@@ -121,7 +122,7 @@ function doStep(population, time, lockdowns, dt=1) {
 
   const newRecovered = population.infected[subtractDays(time, COVID.recoveryTimeDays)];
   population.recovered += newRecovered;
-  population.contagious = Math.max(1e-7, population.contagious - newRecovered);
+  population.contagious = Math.max(1e-7, (population.contagious - newRecovered*(1.0 - COVID.severeSymptomaticRate)));
 
   return newDead;
 }

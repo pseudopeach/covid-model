@@ -32,7 +32,7 @@
       <input type="date" name="end-date"/>
     </fieldset>
     <fieldset id="partial-lockdown">
-      <legend>Partial Lockdown</legend>
+      <legend>Partial Lockdown (2/3 strength)</legend>
       <input type="checkbox" name="active"/>
       <input type="date" name="start-date"/>
       <input type="date" name="end-date"/>
@@ -145,7 +145,7 @@
     const fieldsets = [
       { id :'first-lockdown', value: 1.0 },
       { id :'second-lockdown', value: 1.0 },
-      { id :'partial-lockdown', value: 0.5 }
+      { id :'partial-lockdown', value: 0.6666 }
     ];
 
     let lockdowns = [];
