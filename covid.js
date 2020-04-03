@@ -23,19 +23,19 @@ const geographies = {
   la: {
     name: 'LA Metro',
     size: 13.3,
-    density: 900,
+    density: 875,
     lockdown: new Date('2020-03-19'),
-    initialInfected: 4e-7, // in millions, on 1/25
+    initialInfected: 1.5e-7, // in millions, on 1/25
     lockdowns: {
       'first-lockdown': {
         start: new Date('2020-03-19'),
-        end: new Date('2020-04-05'),
-      },
-      'second-lockdown': null,
-      'partial-lockdown': {
-        start: new Date('2020-04-05'),
         end: new Date('2020-07-04'),
       },
+      'second-lockdown': {
+        start: new Date('2020-07-22'),
+        end: new Date('2020-08-14'),
+      },
+      'partial-lockdown': null,
     },
   },
   nyc: {
@@ -47,10 +47,13 @@ const geographies = {
     lockdowns: {
       'first-lockdown': {
         start: new Date('2020-03-22'),
-        end: new Date('2020-04-05'),
+        end: new Date('2020-05-05'),
       },
       'second-lockdown': null,
-      'partial-lockdown': null,
+      'partial-lockdown': {
+        start: new Date('2020-05-05'),
+        end: new Date('2020-07-04'),
+      },
     },
   },
 };
@@ -83,7 +86,7 @@ function runSimulation(geoName, lockdowns, timeRes, verbose=false) {
     }
     // console.log([time.toLocaleDateString(), Math.round(dailyDeathToll*1e6), dailyDeathToll/pop.size*1e7].join(','));
     outputStats.fatalitiesByDay.push({ date: time, value: dailyDeathToll/pop.size*1e5 });
-    if(verbose || true) {
+    if(verbose) {
       console.log(i, time,
           Math.round(1e6*pop.totalEverInfected),
           Math.round(1e6*pop.totalFatalities),
@@ -122,7 +125,7 @@ function doStep(population, time, lockdowns, dt=1) {
 
   const newRecovered = population.infected[subtractDays(time, COVID.recoveryTimeDays)];
   population.recovered += newRecovered;
-  population.contagious = Math.max(1e-7, (population.contagious - newRecovered*(1.0 - COVID.severeSymptomaticRate)));
+  population.contagious = Math.max(1e-8, (population.contagious - newRecovered*(1.0 - COVID.severeSymptomaticRate)));
 
   return newDead;
 }

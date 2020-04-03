@@ -4,7 +4,7 @@
   text-align: center;
 }
 #stats-display figure {
-  padding: 20px 20px 5px;
+  padding: 0px 20px 15px;
   margin: 10px;
 }
 #stats-display .value-display {
@@ -17,10 +17,17 @@
   border: gray 2px solid;
   display: flex;
   height: 400px;
-  margin: auto;
+  margin: 0 auto 50px;
   position: relative;
   width: 1000px;
 }
+
+.chart-title {
+  margin: auto;
+  width: 1000px;
+  font-size: 24px;
+}
+
 .chart-col {
   background: #529F15;
   height: 250px;
@@ -34,6 +41,16 @@
 }
 .chart-overlay.partial {
   background: rgba(243, 182, 31, 0.2);
+}
+.chart-label {
+  padding: 0;
+  position: absolute;
+  font-size: 11px;
+}
+
+.chart-label.y-axis {
+  text-align: right;
+  padding-right: 3px;
 }
 
 body {

@@ -54,6 +54,7 @@
     </figure>
   </section>
 
+  <h3 class="chart-title">Fatalities per 100k of Population by Date</h3>
   <figure id="chart"></figure>
 
 <script src="covid.js">
@@ -62,7 +63,7 @@
   function refresh() {
     const lockdowns = getLockdowns();
     const { fatalitiesByDay, totalFatalities, totalFatalitiesPerCapita, totalEverInfected }
-        = runSimulation(document.getElementById('geography-options').value, lockdowns, 0.25);
+        = runSimulation(document.getElementById('geography-options').value, lockdowns, 0.25, true);
     updateStats(totalFatalities, totalFatalitiesPerCapita, totalEverInfected);
     drawChart(fatalitiesByDay, lockdowns);
   }
@@ -82,10 +83,8 @@
     chart.innerHTML = '';
 
     const startDate = fataltiesByDay[0].date;
-    const endDate = fataltiesByDay[fataltiesByDay.length - 1].date;
     const pixelsPerDay = 2.0;
     const chartHeight = chart.clientHeight;
-    const chartWidth = chart.clientWidth;
     const maxValue = 1.2*Math.max(...fataltiesByDay.map(f => f.value));
 
     for(let day of fataltiesByDay) {
@@ -97,7 +96,7 @@
       chart.appendChild(col);
     }
 
-    for(let lock of lockdowns) {console.log('lockdown', lock.start, lock.end)
+    for(let lock of lockdowns) {
       const leftPos = Math.round((lock.start.getTime() - startDate.getTime())*pixelsPerDay/24/3600/1000);
       const width = Math.round((lock.end.getTime() - lock.start.getTime())*pixelsPerDay/24/3600/1000);
 
@@ -110,10 +109,49 @@
 
       chart.appendChild(b);
     }
+
+    drawChartLabels(fataltiesByDay, chart, pixelsPerDay, chartHeight/maxValue);
+  }
+
+  function drawChartLabels(data, chartElement, pixelsPerDay, pixelsPerVerticalUnit) {
+    const firstDayOfData = data[0];
+    for(let item of data) {
+      if(item.date.getDate() === 1 && item.date.getMonth()%3 == 0) {
+        const label = item.date.getDay() + ' ' + shortMonth(item.date.getMonth());
+        const leftPos = Math.round((item.date.getTime() - firstDayOfData.date.getTime())/24/3600/1000*pixelsPerDay);
+        const b = document.createElement('div');
+        b.className = 'chart-label';
+        b.style.bottom = '-20px';
+        b.style.left = leftPos+'px';
+        b.innerText = label;
+
+        chartElement.appendChild(b);
+      }
+    }
+
+    const maxDataValue = Math.max(...data.map(f => f.value));
+
+    let yStep = to1SigFig(maxDataValue / 3);
+
+    function drawLabel(v) {
+      const label = v.toLocaleString();
+      const vPos = Math.round(v*pixelsPerVerticalUnit);
+      const b = document.createElement('div');
+      b.className = 'chart-label y-axis';
+      b.style.right = '1003px';
+      b.style.bottom = (vPos - 6)+'px';
+      b.innerText = label;
+      console.log(v, pixelsPerVerticalUnit);
+
+      chartElement.appendChild(b);
+    }
+    for(let yVal = yStep; yVal < maxDataValue; yVal += yStep)
+      drawLabel(yVal);
+    drawLabel(maxDataValue);
   }
 
   function loadScenarios() {
-    const initialSelection = 'bayArea';
+    const initialSelection = 'la';
     for(let key in geographies) {
       const el = document.createElement('option');
       el.textContent = geographies[key].name;
@@ -181,7 +219,7 @@
 
 
   function formatDate(date) {
-    var d = new Date(date),
+    var d = new Date(date.getTime() + 8*3600*1000),
         month = '' + (d.getMonth() + 1),
         day = '' + d.getDate(),
         year = d.getFullYear();
@@ -192,7 +230,16 @@
         day = '0' + day;
 
     return [year, month, day].join('-');
-}
+  }
+
+  function to1SigFig(x) {
+    const denom = Math.pow(10, Math.floor(Math.log10(x)));
+    return Math.round(x/denom)*denom;
+  }
+
+  function shortMonth(index) {
+    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][index%12];
+  }
 </script>
 
 </body>
