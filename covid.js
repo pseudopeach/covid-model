@@ -67,7 +67,7 @@ const COVID = {
   isolationBeginsDays: 7,
   fatalityAtDays: 17,
   recoveryTimeDays: 21,
-  lockdownFactor: 0.6, // prevents this fraction of interactions
+  lockdownFactor: 0.7, // prevents this fraction of interactions
 };
 
 function runSimulation(geoName, lockdowns, timeRes, verbose=false) {
@@ -192,7 +192,11 @@ date          BA   LA_METRO   OTHER
 2020-03-27    5    9    5
 2020-03-28    8    6    3
 2020-03-29    3    7    3
-2020-03-30    7    8    2
+2020-03-30    11   8    2
+2020-03-31    4    21   6
+2020-04-01    5    14   10
+2020-04-02    10   20   5
+2020-04-03    7    17   8
 
 
 */
