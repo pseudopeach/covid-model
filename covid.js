@@ -1,4 +1,4 @@
-SIM_DAYS = 120;
+SIM_DAYS = 500;
 START_DATE = new Date('2020-01-25');
 
 const geographies = {
