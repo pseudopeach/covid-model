@@ -93,7 +93,7 @@ const COVID = {
   isolationBeginsDays: 7,
   fatalityAtDays: 17,
   recoveryTimeDays: 21,
-  lockdownFactor: 0.72, // prevents this fraction of interactions
+  lockdownFactor: 0.35, // prevents this fraction of interactions
 };
 
 function runSimulation(geoName, lockdowns, timeRes, verbose=false) {
