@@ -8,10 +8,15 @@ const geographies = {
     density: 600,
     initialInfected: 500e-4, // in millions, start date
     anyVaxFraction: 0.63,
+    lockdown: new Date('2021-05-01'),
     simStart: new Date('2021-05-01'),
-    'partial-lockdown': {
-      start: new Date('2021-05-01'),
-      end: new Date('2021-07-01'),
+    lockdowns: {
+      'first-lockdown': null,
+      'second-lockdown': null,
+      'partial-lockdown': {
+        start: new Date('2021-05-01'),
+        end: new Date('2021-07-01'),
+      },
     },
   },
   florida: {
