@@ -1,7 +1,28 @@
-SIM_DAYS = 500;
+SIM_DAYS = 120;
 START_DATE = new Date('2020-01-25');
 
 const geographies = {
+  uk: {
+    name: 'United Kingdom',
+    size: 66.65,
+    density: 600,
+    initialInfected: 500e-4, // in millions, start date
+    anyVaxFraction: 0.63,
+    simStart: new Date('2021-05-01'),
+    'partial-lockdown': {
+      start: new Date('2021-05-01'),
+      end: new Date('2021-07-01'),
+    },
+  },
+  florida: {
+    name: 'State of Florida',
+    size: 21.5,
+    density: 1800,
+    initialInfected: 400e-4, // in millions, start date
+    anyVaxFraction: 0.55,
+    simStart: new Date('2021-06-01'),
+  },
+
   bayArea: {
     name: 'SF Bay Area',
     size: 7.75,
@@ -59,10 +80,10 @@ const geographies = {
 };
 
 const COVID = {
-  baseRate: 9e-5,
+  baseRate: 18e-6,
   communityAttackRate: 0.4,
-  severeSymptomaticRate: 0.25,
-  infectionFatalityRate: 0.005,
+  severeSymptomaticRate: 0.02,
+  infectionFatalityRate: 0.0006,
   incubationTimeDays: 2,
   isolationBeginsDays: 7,
   fatalityAtDays: 17,
@@ -74,22 +95,25 @@ function runSimulation(geoName, lockdowns, timeRes, verbose=false) {
   console.log('running sim...', lockdowns)
   let outputStats = { fatalitiesByDay: [], totalFatalities: 0, totalFatalitiesPerCapita: 0, totalEverInfected: 0 };
   const dt = timeRes;
-  let pop = initializePopulation(geographies[geoName], dt);
-  let time = new Date(START_DATE);
+  let time = new Date(geographies[geoName].simStart || START_DATE);
+  let pop = initializePopulation(time, geographies[geoName], dt);
 
   // console.log('day,deaths,deathsper10M');
   for(let i=0; i<SIM_DAYS; i++){
     let dailyDeathToll = 0;
+    let dailyInfected = 0;
     for(let j=0; j<1/dt; j++) {
       time = new Date(time.getTime() + dt*24*3600*1000);
-      dailyDeathToll += doStep(pop, time, lockdowns, dt);
+      [newInfected, newDead] = doStep(pop, time, lockdowns, dt);
+      dailyInfected += newInfected;
+      dailyDeathToll += newDead;
     }
     // console.log([time.toLocaleDateString(), Math.round(dailyDeathToll*1e6), dailyDeathToll/pop.size*1e7].join(','));
     outputStats.fatalitiesByDay.push({ date: time, value: dailyDeathToll/pop.size*1e5 });
     if(verbose) {
       console.log(i, time,
-          Math.round(1e6*pop.totalEverInfected),
-          Math.round(1e6*pop.totalFatalities),
+          Math.round(1e6*dailyInfected),
+          Math.round(1e6*dailyDeathToll),
           Math.round(1e6*pop.contagious),
           Math.round(1e6*pop.recovered),
           getLockdownFactor(lockdowns, time),
@@ -105,7 +129,7 @@ function runSimulation(geoName, lockdowns, timeRes, verbose=false) {
 }
 
 function doStep(population, time, lockdowns, dt=1) {
-  const susceptible = COVID.communityAttackRate*population.size - population.totalEverInfected;
+  const susceptible = COVID.communityAttackRate*(1.0 - population.anyVaxFraction)*population.size - population.totalEverInfected;
   const rate = COVID.baseRate*population.density*(1.0 - getLockdownFactor(lockdowns, time));
   const newInfected = dt*rate*population.contagious*susceptible;
 
@@ -118,6 +142,11 @@ function doStep(population, time, lockdowns, dt=1) {
   const newIsolated = population.infected[subtractDays(time, COVID.isolationBeginsDays)]*COVID.severeSymptomaticRate;
   population.contagious -= newIsolated;
 
+  population.hospitalizedOn[time.getTime()] = newIsolated;
+  population.hospitalized += newIsolated;
+  population.hospitalized -= population.hospitalizedOn[subtractDays(time, COVID.isolationBeginsDays)];
+  console.log('*** hosp', 1e6*population.hospitalized)
+
   const newDead = population.infected[subtractDays(time, COVID.fatalityAtDays)]*COVID.infectionFatalityRate;
   population.contagious -= newDead;
   population.infected[subtractDays(time, COVID.fatalityAtDays)] -= newDead;
@@ -127,7 +156,7 @@ function doStep(population, time, lockdowns, dt=1) {
   population.recovered += newRecovered;
   population.contagious = Math.max(1e-8, (population.contagious - newRecovered*(1.0 - COVID.severeSymptomaticRate)));
 
-  return newDead;
+  return [newInfected, newDead];
 }
 
 function subtractDays(baseTime, days) {
@@ -144,23 +173,28 @@ function getLockdownFactor(lockdowns, time) {
 }
 
 
-function initializePopulation(geography, dt=1) {
+function initializePopulation(startTime, geography, dt=1) {
   let obj = Object.assign({}, geography, {
     totalEverInfected: geography.initialInfected,
     contagious: 0,
     recovered: 0,
     totalFatalities: 0,
+    hospitalized: 0,
     infected: [],
+    hospitalizedOn: [],
   });
 
   for(let i=0; i<SIM_DAYS+Math.round(1/dt)*COVID.recoveryTimeDays; i++){
-    obj.infected[START_DATE.getTime() + (dt*i - COVID.recoveryTimeDays)*24*3600*1000] = 0;
+    obj.infected[startTime.getTime() + (dt*i - COVID.recoveryTimeDays)*24*3600*1000] = 0;
+    obj.hospitalizedOn[startTime.getTime() + (dt*i - COVID.recoveryTimeDays)*24*3600*1000] = 0;
   }
 
-  obj.infected[START_DATE.getTime()] = geography.initialInfected;
+  obj.infected[startTime.getTime()] = geography.initialInfected;
   return obj;
 }
 
+
+runSimulation('florida', [], timeRes=1, verbose=true);
 
 /*
 
