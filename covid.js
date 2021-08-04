@@ -28,60 +28,16 @@ const geographies = {
     simStart: new Date('2021-06-01'),
   },
 
-  bayArea: {
-    name: 'SF Bay Area',
-    size: 7.75,
-    density: 868,
-    lockdown: new Date('2020-03-16'),
-    initialInfected: 7e-6, // in millions, on 1/25
-    lockdowns: {
-      'first-lockdown': {
-        start: new Date('2020-03-16'),
-        end: new Date('2020-04-05'),
-      },
-      'second-lockdown': null,
-      'partial-lockdown': {
-        start: new Date('2020-04-05'),
-        end: new Date('2020-09-15'),
-      },
-    },
+  california: {
+    name: 'California',
+    size: 31,
+    density: 1100,
+    simStart: new Date('2021-06-01'),
+    initialInfected: 200e-4,
+    anyVaxFraction: 0.65,
+
   },
-  la: {
-    name: 'LA Metro',
-    size: 13.3,
-    density: 875,
-    lockdown: new Date('2020-03-19'),
-    initialInfected: 1.5e-7, // in millions, on 1/25
-    lockdowns: {
-      'first-lockdown': {
-        start: new Date('2020-03-19'),
-        end: new Date('2020-07-04'),
-      },
-      'second-lockdown': {
-        start: new Date('2020-07-22'),
-        end: new Date('2020-08-14'),
-      },
-      'partial-lockdown': null,
-    },
-  },
-  nyc: {
-    name: 'New York City Metro',
-    size: 23.7,
-    density: 400, //5318,
-    lockdown: new Date('2020-03-22'),
-    initialInfected: 20e-6, // in millions, on 1/25
-    lockdowns: {
-      'first-lockdown': {
-        start: new Date('2020-03-22'),
-        end: new Date('2020-05-05'),
-      },
-      'second-lockdown': null,
-      'partial-lockdown': {
-        start: new Date('2020-05-05'),
-        end: new Date('2020-07-04'),
-      },
-    },
-  },
+  
 };
 
 const COVID = {
@@ -199,7 +155,7 @@ function initializePopulation(startTime, geography, dt=1) {
 }
 
 
-runSimulation('florida', [], timeRes=1, verbose=true);
+runSimulation('california', [], timeRes=1, verbose=true);
 
 /*
 
